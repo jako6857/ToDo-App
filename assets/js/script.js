@@ -56,9 +56,14 @@ function removeTask(button) {
     li.parentNode.removeChild(li);
 }
 
-function editTask() {}
-    
 
-
-
+// Edits a task in the list
+function editTask(button) {
+    let li = button.parentNode;
+    let taskText = li.firstChild.nodeValue.trim();
+    let newTaskText = prompt("Rediger opgaven:", taskText); 
+    if (newTaskText !== null && newTaskText.trim() !== "") {
+        li.firstChild.nodeValue = newTaskText + " ";
+    }
+}
 //#endregion
