@@ -4,123 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>To-Do App</title>
-    <script src="assets/js/script.js" defer></script>
     <link rel="stylesheet" href="assets/css/stylesheet.css" />
+    <script src="assets/js/script.js" defer></script>
   </head>
   <body>
-   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f6f8;
-      display: flex;
-      justify-content: center;
-      padding: 40px;
-      margin: 0;
-    }
-    .app {
-      background: white;
-      padding: 20px 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      width: 400px;
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .input-row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    #listInput {
-      flex: 1;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-size: 16px;
-    }
-    #addListBtn {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      border: none;
-      background-color: #2196F3;
-      color: white;
-      font-size: 22px;
-      cursor: pointer;
-    }
-    #addListBtn:hover {
-      background-color: #1976D2;
-    }
-    .list-card {
-      background: #fafafa;
-      padding: 15px;
-      border-radius: 10px;
-      margin-bottom: 10px;
-      cursor: pointer;
-      border: 1px solid #eee;
-      transition: background 0.2s;
-    }
-    .list-card:hover {
-      background: #f0f0f0;
-    }
-  </style>
-</head>
-<body>
-  <div class="app">
-    <h1>My Lists</h1>
-    <div class="input-row">
-      <input id="listInput" type="text" placeholder="New list name">
-      <button id="addListBtn">+</button>
-    </div>
-    <div id="lists"></div>
-  </div>
 
-  <script>
-    const listInput = document.getElementById('listInput');
-    const addListBtn = document.getElementById('addListBtn');
-    const listsDiv = document.getElementById('lists');
+         <input id="taskInput" type="text" placeholder="Skriv en opgave">
+         <button onclick="listCreator()" id="addBtn">+</button>
+         <ul id="taskList"></ul>
 
-    // Load lists from storage
-    function loadLists() {
-      listsDiv.innerHTML = "";
-      const lists = JSON.parse(localStorage.getItem("lists") || "[]");
-      lists.forEach(name => renderList(name));
-    }
-
-    // Save new list
-    function saveList(name) {
-      const lists = JSON.parse(localStorage.getItem("lists") || "[]");
-      lists.push(name);
-      localStorage.setItem("lists", JSON.stringify(lists));
-    }
-
-    // Render a list card
-    function renderList(name) {
-      const div = document.createElement('div');
-      div.className = 'list-card';
-      div.textContent = name;
-      div.addEventListener('click', () => {
-        window.location.href = `list.html?name=${encodeURIComponent(name)}`;
-      });
-      listsDiv.appendChild(div);
-    }
-
-    function handleAddList() {
-      const name = listInput.value.trim();
-      if (!name) return;
-      saveList(name);
-      renderList(name);
-      listInput.value = "";
-    }
-
-    addListBtn.addEventListener('click', handleAddList);
-    listInput.addEventListener('keypress', e => {
-      if (e.key === "Enter") handleAddList();
-    });
-
-    loadLists();
-  </script>
   </body>
 </html>
