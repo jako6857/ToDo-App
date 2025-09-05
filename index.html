@@ -10,8 +10,19 @@
   <body>
 
          <input id="taskInput" type="text" placeholder="Skriv en opgave">
-         <button onclick="listCreator()" id="addBtn">+</button>
+         <button onclick="addTask()" id="addBtn">+</button>
          <ul id="taskList"></ul>
+
+
+<div id="editModal" class="modal">
+    <div class="modal-dialog">
+      <input id="editInput" type="text">
+      <div class="actions">
+        <button onclick="closeModal()">Annuller</button>
+        <button onclick="saveEdit()">Gem</button>
+      </div>
+    </div>
+  </div>
 
   </body>
 </html>

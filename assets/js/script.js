@@ -1,37 +1,78 @@
 //#region   
 
-switch (buttonlistener) {
-    case "addBtn":
-        listCreator();
-        break;
 
-    case "removeTask":
-        removeTask();
-        break;
 
-    case "editTask":
-        editTask();
-        break;
+//#endregion
 
-    default: 
 
-        break;
+//#region   
+
+//#endregion
+
+
+//#region   
+
+//#endregion
+
+
+//#region  editTask
+let editingLi = null;
+
+function addTask() {
+  const input = document.getElementById("taskInput");
+  const text = input.value.trim();
+  if (!text) return;
+  
+  const li = document.createElement("li");
+  li.innerHTML = `<span>${text}</span> 
+    <button onclick="editTask(this)">Rediger</button> 
+    <button onclick="removeTask(this)">Fjern</button>`;
+  document.getElementById("taskList").appendChild(li);
+  input.value = "";
 }
 
-//#endregion
+function removeTask(btn) {
+  btn.parentElement.remove();
+}
 
+function editTask(btn) {
+  editingLi = btn.parentElement;
+    // try span first, fallback to first text node
+    const span = editingLi.querySelector('.task-text') || editingLi.querySelector('span');
+    let current = '';
+    if (span) {
+        current = span.textContent;
+    } else {
+        const first = editingLi.firstChild;
+        current = (first && first.nodeType === 3) ? first.nodeValue.trim() : '';
+    }
+    document.getElementById("editInput").value = current;
+    document.getElementById("editModal").classList.add("open");
+    // optional: focus input
+    setTimeout(() => document.getElementById("editInput").focus(), 0);
+}
 
-//#region   
+function closeModal() {
+      document.getElementById("editModal").classList.remove("open");
+    editingLi = null;
+}
 
-//#endregion
+function saveEdit() {
+  const val = (document.getElementById("editInput").value || "").trim();
+    if (!editingLi) { closeModal(); return; }
+    if (!val) return; // prevent empty
 
-
-//#region   
-
-//#endregion
-
-
-//#region  
+    const span = editingLi.querySelector('.task-text') || editingLi.querySelector('span');
+    if (span) {
+        span.textContent = val;
+    } else {
+        // fallback: update first text node or insert new one
+        const first = editingLi.firstChild;
+        if (first && first.nodeType === 3) first.nodeValue = val + ' ';
+        else editingLi.insertBefore(document.createTextNode(val + ' '), editingLi.firstChild);
+    }
+    closeModal();
+}
 
 //#endregion
 
@@ -58,12 +99,23 @@ function removeTask(button) {
 
 
 // Edits a task in the list
-function editTask(button) {
-    let li = button.parentNode;
-    let taskText = li.firstChild.nodeValue.trim();
-    let newTaskText = prompt("Rediger opgaven:", taskText); 
-    if (newTaskText !== null && newTaskText.trim() !== "") {
-        li.firstChild.nodeValue = newTaskText + " ";
-    }
+
+switch (buttonlistener) {
+    case "addBtn":
+        listCreator();
+        break;
+
+    case "removeTask":
+        removeTask();
+        break;
+
+    case "editTask":
+        editTask();
+        break;
+
+    default: 
+
+        break;
 }
+
 //#endregion
