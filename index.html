@@ -8,21 +8,38 @@
     <script src="assets/js/script.js" defer></script>
   </head>
   <body>
+<body>
+  <button onclick="toggleTheme()" id="themeToggle">🌙/☀️</button>
 
-         <input id="taskInput" type="text" placeholder="Skriv en opgave">
-         <button onclick="addTask()" id="addBtn">+</button>
-         <ul id="taskList"></ul>
+  <!-- Lists View -->
+  <div id="listsView">
+    <h2>Dine lister</h2>
+    <input id="listInput" type="text" placeholder="Ny liste" />
+    <button onclick="addList()">+</button>
+    <ul id="listsContainer"></ul>
+  </div>
 
+  <!-- Single List Detail View -->
+  <div id="listDetail" style="display:none;">
+    <h2 id="listTitle"></h2>
+    <input id="taskInput" type="text" placeholder="Ny opgave" />
+    <button onclick="addTask()">+</button>
+    <ul id="taskList"></ul>
+    <button onclick="showListsView()">Tilbage</button>
+  </div>
 
-<div id="editModal" class="modal">
+  <!-- Edit Modal -->
+  <div id="editModal" class="modal">
     <div class="modal-dialog">
-      <input id="editInput" type="text">
+      <input id="editInput" type="text" />
       <div class="actions">
         <button onclick="closeModal()">Annuller</button>
         <button onclick="saveEdit()">Gem</button>
       </div>
     </div>
   </div>
+</body>
+
 
   </body>
 </html>

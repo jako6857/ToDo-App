@@ -1,149 +1,187 @@
-// assets/js/script.js
-const STORAGE_KEY = 'todoAppState';
+const STORAGE_KEY = "todoAppState";
+let appState = { lists: [], theme: "light" };
+let currentListIndex = null;
 let editingLi = null;
 
-/* ---------- helpers ---------- */
-function createTaskElement(text) {
-  const li = document.createElement('li');
+/* ---------- LISTS ---------- */
+function addList() {
+  const input = document.getElementById("listInput");
+  const name = input.value.trim();
+  if (!name) return;
 
-  // Full template string for each task
-  li.innerHTML = `
-    <span class="task-text">${text}</span>
-    <div class="task-actions">
-      <button type="button" class="edit-btn">Rediger</button>
-      <button type="button" class="remove-btn">Fjern</button>
-    </div>
-  `;
-
-  // Attach listeners
-  li.querySelector('.edit-btn').addEventListener('click', () => editTask(li));
-  li.querySelector('.remove-btn').addEventListener('click', () => {
-    li.remove();
-    saveAppState();
-  });
-
-  return li;
-}
-
-/* ---------- main actions ---------- */
-function addTask() {
-  const input = document.getElementById('taskInput');
-  const text = (input.value || '').trim();
-  if (!text) return;
-
-  const li = createTaskElement(text);
-  document.getElementById('taskList').appendChild(li);
-  input.value = '';
-  input.focus();
-
+  appState.lists.push({ name, tasks: [] });
+  input.value = "";
   saveAppState();
+  renderLists();
 }
 
-function removeTask(btn) {
-  // fallback if called inline
-  const li = btn.closest('li');
-  if (li) {
-    li.remove();
+function renderLists() {
+  const container = document.getElementById("listsContainer");
+  container.innerHTML = "";
+
+  appState.lists.forEach((list, idx) => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <span>${list.name}</span>
+      <button onclick="showListDetail(${idx})">Åbn</button>
+      <button onclick="editList(${idx})">Rediger</button>
+      <button onclick="deleteList(${idx})">Slet</button>
+    `;
+    container.appendChild(li);
+  });
+}
+
+function editList(idx) {
+  const newName = prompt("Rediger listenavn:", appState.lists[idx].name);
+  if (newName && newName.trim()) {
+    appState.lists[idx].name = newName.trim();
     saveAppState();
+    renderLists();
   }
 }
 
-function editTask(li) {
-  editingLi = li;
-  if (!editingLi) return;
+function deleteList(idx) {
+  if (!confirm("Vil du slette denne liste?")) return;
+  appState.lists.splice(idx, 1);
+  saveAppState();
+  renderLists();
+}
 
-  const span = editingLi.querySelector('.task-text');
-  document.getElementById('editInput').value = span ? span.textContent : '';
+function showListsView() {
+  document.getElementById("listsView").style.display = "block";
+  document.getElementById("listDetail").style.display = "none";
+  currentListIndex = null;
+  renderLists();
+}
 
-  const modal = document.getElementById('editModal');
-  modal.classList.add('open');
-  modal.style.display = 'flex';
-  setTimeout(() => document.getElementById('editInput').focus(), 0);
+/* ---------- TASKS ---------- */
+function addTask() {
+  if (currentListIndex === null) return;
+  const input = document.getElementById("taskInput");
+  const text = input.value.trim();
+  if (!text) return;
+
+  appState.lists[currentListIndex].tasks.push({ text, completed: false });
+  input.value = "";
+  saveAppState();
+  renderTasks();
+}
+
+function renderTasks() {
+  const list = appState.lists[currentListIndex];
+  document.getElementById("listTitle").textContent = list.name;
+
+  const taskList = document.getElementById("taskList");
+  taskList.innerHTML = "";
+
+  list.tasks.forEach((task, idx) => {
+    const li = document.createElement("li");
+    li.className = task.completed ? "completed" : "";
+    li.innerHTML = `
+      <input type="checkbox" ${task.completed ? "checked" : ""} onchange="toggleTask(${idx})" />
+      <span class="task-text">${task.text}</span>
+      <button onclick="editTask(this)">Rediger</button>
+      <button onclick="removeTask(${idx})">Fjern</button>
+    `;
+    taskList.appendChild(li);
+  });
+}
+
+function showListDetail(idx) {
+  currentListIndex = idx;
+  document.getElementById("listsView").style.display = "none";
+  document.getElementById("listDetail").style.display = "block";
+  renderTasks();
+}
+
+/* ---------- TASK EDIT/DELETE ---------- */
+function editTask(btn) {
+  editingLi = btn.parentElement;
+  const span = editingLi.querySelector(".task-text");
+  document.getElementById("editInput").value = span ? span.textContent : "";
+
+  const modal = document.getElementById("editModal");
+  modal.classList.add("open");
+  modal.style.display = "flex";
 }
 
 function closeModal() {
-  const modal = document.getElementById('editModal');
-  modal.classList.remove('open');
-  modal.style.display = 'none';
+  const modal = document.getElementById("editModal");
+  modal.classList.remove("open");
+  modal.style.display = "none";
   editingLi = null;
 }
 
 function saveEdit() {
-  if (!editingLi) { closeModal(); return; }
-  const v = (document.getElementById('editInput').value || '').trim();
-  if (!v) return; // prevent empty
+  if (!editingLi || currentListIndex === null) return;
 
-  const span = editingLi.querySelector('.task-text');
-  if (span) span.textContent = v;
+  const val = document.getElementById("editInput").value.trim();
+  if (!val) return;
+
+  const index = Array.from(editingLi.parentElement.children).indexOf(editingLi);
+  appState.lists[currentListIndex].tasks[index].text = val;
 
   saveAppState();
+  renderTasks();
   closeModal();
 }
 
-/* ---------- persistence ---------- */
+function removeTask(idx) {
+  appState.lists[currentListIndex].tasks.splice(idx, 1);
+  saveAppState();
+  renderTasks();
+}
+
+/* ---------- COMPLETE TASK ---------- */
+function toggleTask(idx) {
+  const task = appState.lists[currentListIndex].tasks[idx];
+  task.completed = !task.completed;
+  saveAppState();
+  renderTasks();
+}
+
+/* ---------- THEME ---------- */
+function toggleTheme() {
+  appState.theme = appState.theme === "light" ? "dark" : "light";
+  applyTheme();
+  saveAppState();
+}
+
+function applyTheme() {
+  document.body.className = appState.theme;
+  document.getElementById("themeToggle").textContent =
+    appState.theme === "dark" ? "☀️" : "🌙";
+}
+
+/* ---------- STORAGE ---------- */
 function saveAppState() {
-  const tasks = Array.from(document.querySelectorAll('#taskList .task-text'))
-                     .map(s => s.textContent.trim());
-  const theme = document.body.classList.contains('dark') ? 'dark' : 'light';
-  const state = { tasks, theme };
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch (err) {
-    console.warn('Could not save app state:', err);
-  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
 }
 
 function loadAppState() {
   const raw = localStorage.getItem(STORAGE_KEY);
-  let state = null;
-
-  if (raw) {
-    try { state = JSON.parse(raw); }
-    catch (e) { console.warn('Invalid JSON in', STORAGE_KEY, e); }
+  if (!raw) return;
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed.lists) appState = parsed;
+  } catch (e) {
+    console.warn("Invalid localStorage data");
   }
-
-  if (!state || !Array.isArray(state.tasks)) return;
-
-  const taskList = document.getElementById('taskList');
-  taskList.innerHTML = '';
-  state.tasks.forEach(t => {
-    taskList.appendChild(createTaskElement(t));
-  });
-
-  if (state.theme === 'dark') document.body.classList.add('dark');
-  else document.body.classList.remove('dark');
 }
 
-/* ---------- wiring ---------- */
-document.addEventListener('DOMContentLoaded', () => {
+/* ---------- INIT ---------- */
+document.addEventListener("DOMContentLoaded", () => {
   loadAppState();
+  applyTheme();
+  showListsView();
 
-  // add task with Enter
-  document.getElementById('taskInput').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      addTask();
-    }
+  // Enter key to add list
+  document.getElementById("listInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") addList();
   });
 
-  // modal interactions
-  const modal = document.getElementById('editModal');
-  const editInput = document.getElementById('editInput');
-
-  // click outside modal closes it
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) closeModal();
-  });
-
-  // keyboard shortcuts for modal
-  document.addEventListener('keydown', (e) => {
-    if (modal.style.display !== 'flex' && !modal.classList.contains('open')) return;
-    if (e.key === 'Escape') closeModal();
-    if (e.key === 'Enter') saveEdit();
-  });
-
-  editInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); saveEdit(); }
-    if (e.key === 'Escape') { e.preventDefault(); closeModal(); }
+  // Enter key to add task
+  document.getElementById("taskInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") addTask();
   });
 });
