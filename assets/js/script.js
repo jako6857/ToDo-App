@@ -21,12 +21,14 @@ function renderLists() {
 
   appState.lists.forEach((list, idx) => {
     const li = document.createElement("li");
+
+    // whole li clickable to open list
     li.innerHTML = `
-      <span>${list.name}</span>
-      <button onclick="showListDetail(${idx})">Åbn</button>
+      <span class="list-name" onclick="showListDetail(${idx})">${list.name}</span>
       <button onclick="editList(${idx})">Rediger</button>
       <button onclick="deleteList(${idx})">Slet</button>
     `;
+
     container.appendChild(li);
   });
 }
