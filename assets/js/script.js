@@ -1,14 +1,14 @@
 const STORAGE_KEY = "todoAppState";
 let appState = { lists: [], theme: "light" };
 let currentListIndex = null;
-let editingLi = null;
+let editingType = null; // "list" or "task"
+let editingIndex = null;
 
-/* ---------- LISTS ---------- */
+// ---------- LISTS ----------
 function addList() {
   const input = document.getElementById("listInput");
   const name = input.value.trim();
   if (!name) return;
-
   appState.lists.push({ name, tasks: [] });
   input.value = "";
   saveAppState();
@@ -18,28 +18,17 @@ function addList() {
 function renderLists() {
   const container = document.getElementById("listsContainer");
   container.innerHTML = "";
-
   appState.lists.forEach((list, idx) => {
     const li = document.createElement("li");
-
-    // whole li clickable to open list
     li.innerHTML = `
       <span class="list-name" onclick="showListDetail(${idx})">${list.name}</span>
-      <button onclick="editList(${idx})">Rediger</button>
-      <button onclick="deleteList(${idx})">Slet</button>
+      <div class="actions">
+        <button onclick="openEditModal('list', ${idx}, '${list.name}')">Rediger</button>
+        <button onclick="deleteList(${idx})">Slet</button>
+      </div>
     `;
-
     container.appendChild(li);
   });
-}
-
-function editList(idx) {
-  const newName = prompt("Rediger listenavn:", appState.lists[idx].name);
-  if (newName && newName.trim()) {
-    appState.lists[idx].name = newName.trim();
-    saveAppState();
-    renderLists();
-  }
 }
 
 function deleteList(idx) {
@@ -56,13 +45,12 @@ function showListsView() {
   renderLists();
 }
 
-/* ---------- TASKS ---------- */
+// ---------- TASKS ----------
 function addTask() {
   if (currentListIndex === null) return;
   const input = document.getElementById("taskInput");
   const text = input.value.trim();
   if (!text) return;
-
   appState.lists[currentListIndex].tasks.push({ text, completed: false });
   input.value = "";
   saveAppState();
@@ -72,18 +60,18 @@ function addTask() {
 function renderTasks() {
   const list = appState.lists[currentListIndex];
   document.getElementById("listTitle").textContent = list.name;
-
   const taskList = document.getElementById("taskList");
   taskList.innerHTML = "";
-
   list.tasks.forEach((task, idx) => {
     const li = document.createElement("li");
     li.className = task.completed ? "completed" : "";
     li.innerHTML = `
       <input type="checkbox" ${task.completed ? "checked" : ""} onchange="toggleTask(${idx})" />
       <span class="task-text">${task.text}</span>
-      <button onclick="editTask(this)">Rediger</button>
-      <button onclick="removeTask(${idx})">Fjern</button>
+      <div class="actions">
+        <button onclick="openEditModal('task', ${idx}, '${task.text}', ${currentListIndex})">Rediger</button>
+        <button onclick="removeTask(${idx})">Fjern</button>
+      </div>
     `;
     taskList.appendChild(li);
   });
@@ -96,45 +84,45 @@ function showListDetail(idx) {
   renderTasks();
 }
 
-/* ---------- TASK EDIT/DELETE ---------- */
-function editTask(btn) {
-  editingLi = btn.parentElement;
-  const span = editingLi.querySelector(".task-text");
-  document.getElementById("editInput").value = span ? span.textContent : "";
-
-  const modal = document.getElementById("editModal");
-  modal.classList.add("open");
-  modal.style.display = "flex";
+// ---------- EDIT MODAL ----------
+function openEditModal(type, idx, currentText, listIdx = null) {
+  editingType = type;
+  editingIndex = idx;
+  if (listIdx !== null) currentListIndex = listIdx;
+  document.getElementById("editInput").value = currentText;
+  document.getElementById("editTitle").textContent =
+    type === "task" ? "Rediger opgave" : "Rediger liste";
+  document.getElementById("editModal").classList.add("open");
+  setTimeout(() => document.getElementById("editInput").focus(), 0);
 }
 
 function closeModal() {
-  const modal = document.getElementById("editModal");
-  modal.classList.remove("open");
-  modal.style.display = "none";
-  editingLi = null;
+  document.getElementById("editModal").classList.remove("open");
+  editingType = null;
+  editingIndex = null;
 }
 
 function saveEdit() {
-  if (!editingLi || currentListIndex === null) return;
-
-  const val = document.getElementById("editInput").value.trim();
-  if (!val) return;
-
-  const index = Array.from(editingLi.parentElement.children).indexOf(editingLi);
-  appState.lists[currentListIndex].tasks[index].text = val;
-
+  const newText = document.getElementById("editInput").value.trim();
+  if (!newText) return;
+  if (editingType === "list") {
+    appState.lists[editingIndex].name = newText;
+    renderLists();
+  } else if (editingType === "task") {
+    appState.lists[currentListIndex].tasks[editingIndex].text = newText;
+    renderTasks();
+  }
   saveAppState();
-  renderTasks();
   closeModal();
 }
 
+// ---------- TASK DELETE / TOGGLE ----------
 function removeTask(idx) {
   appState.lists[currentListIndex].tasks.splice(idx, 1);
   saveAppState();
   renderTasks();
 }
 
-/* ---------- COMPLETE TASK ---------- */
 function toggleTask(idx) {
   const task = appState.lists[currentListIndex].tasks[idx];
   task.completed = !task.completed;
@@ -142,7 +130,7 @@ function toggleTask(idx) {
   renderTasks();
 }
 
-/* ---------- THEME ---------- */
+// ---------- THEME ----------
 function toggleTheme() {
   appState.theme = appState.theme === "light" ? "dark" : "light";
   applyTheme();
@@ -155,7 +143,7 @@ function applyTheme() {
     appState.theme === "dark" ? "☀️" : "🌙";
 }
 
-/* ---------- STORAGE ---------- */
+// ---------- STORAGE ----------
 function saveAppState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
 }
@@ -171,19 +159,15 @@ function loadAppState() {
   }
 }
 
-/* ---------- INIT ---------- */
+// ---------- INIT ----------
 document.addEventListener("DOMContentLoaded", () => {
   loadAppState();
   applyTheme();
   showListsView();
-
-  // Enter key to add list
-  document.getElementById("listInput").addEventListener("keydown", (e) => {
+  document.getElementById("listInput").addEventListener("keydown", e => {
     if (e.key === "Enter") addList();
   });
-
-  // Enter key to add task
-  document.getElementById("taskInput").addEventListener("keydown", (e) => {
+  document.getElementById("taskInput").addEventListener("keydown", e => {
     if (e.key === "Enter") addTask();
   });
 });

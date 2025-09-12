@@ -11,26 +11,35 @@
 <body>
   <button onclick="toggleTheme()" id="themeToggle">🌙/☀️</button>
 
-  <!-- Lists View -->
-  <div id="listsView">
-    <h2>Dine lister</h2>
-    <input id="listInput" type="text" placeholder="Ny liste" />
-    <button onclick="addList()">+</button>
-    <ul id="listsContainer"></ul>
-  </div>
+  <div class="container">
 
-  <!-- Single List Detail View -->
-  <div id="listDetail" style="display:none;">
-    <h2 id="listTitle"></h2>
-    <input id="taskInput" type="text" placeholder="Ny opgave" />
-    <button onclick="addTask()">+</button>
-    <ul id="taskList"></ul>
-    <button onclick="showListsView()">Tilbage</button>
+    <!-- Lists View -->
+    <div id="listsView" class="view-box">
+      <h2>Dine lister</h2>
+      <div class="input-row">
+        <input id="listInput" type="text" placeholder="Ny liste" />
+        <button onclick="addList()">+</button>
+      </div>
+      <ul id="listsContainer"></ul>
+    </div>
+
+    <!-- Single List Detail View -->
+    <div id="listDetail" class="view-box" style="display:none;">
+      <h2 id="listTitle"></h2>
+      <div class="input-row">
+        <input id="taskInput" type="text" placeholder="Ny opgave" />
+        <button onclick="addTask()">+</button>
+      </div>
+      <ul id="taskList"></ul>
+      <button onclick="showListsView()">Tilbage</button>
+    </div>
+
   </div>
 
   <!-- Edit Modal -->
   <div id="editModal" class="modal">
     <div class="modal-dialog">
+      <h3 id="editTitle"></h3>
       <input id="editInput" type="text" />
       <div class="actions">
         <button onclick="closeModal()">Annuller</button>
@@ -38,8 +47,6 @@
       </div>
     </div>
   </div>
-</body>
-
 
   </body>
 </html>
